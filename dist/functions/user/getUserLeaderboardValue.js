@@ -39,9 +39,22 @@ exports.default = new forgescript_1.NativeFunction({
     brackets: true,
     async execute(ctx, [name, sortType, user]) {
         const data = await util_1.DataBase.find({ name, type: "user" });
-        data.sort((a, b) => Number(a.value) - Number(b.value));
-        const index = ([SortType[0], SortType.asc].indexOf(sortType && sortType.toString() !== '' ? sortType : 'asc') === -1 ? data : [...data].reverse()).findIndex((s) => s.id === (user?.id ?? ctx.user?.id));
-        return this.success(index + 1);
+        data.sort((a, b) => parseInt(a.value) - parseInt(b.value));
+        const sortedData = ([SortType[0], SortType.asc].indexOf(sortType && sortType.toString() !== '' ? sortType : 'asc') === -1 ? [...data].reverse() : data);
+        let rank = 0;
+        let lastValue = null;
+        let actualRank = 0;
+        for (let i = 0; i < sortedData.length; i++) {
+            const currentValue = sortedData[i].value;
+            if (currentValue !== lastValue)
+                actualRank = i + 1;
+            lastValue = currentValue;
+            if (sortedData[i].id === (user?.id ?? ctx.user?.id)) {
+                rank = actualRank;
+                break;
+            }
+        }
+        return this.success(rank);
     },
 });
 //# sourceMappingURL=getUserLeaderboardValue.js.map
